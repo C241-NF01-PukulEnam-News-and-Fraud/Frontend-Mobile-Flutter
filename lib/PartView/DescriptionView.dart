@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pukulenam/Models/NewsData.dart';
 import '../Themes/MainThemes.dart';
 
+
 class DescriptionView extends StatefulWidget {
   const DescriptionView({
     Key? key,
@@ -156,60 +157,63 @@ class _DescriptionViewState extends State<DescriptionView>
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        getAppBarUI('My Activity'),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (selectedActivity.photo != null)
-                      Container(
-                        height: 200, // Adjust height as needed
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: selectedActivity.photo!,
-                            fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 80.0), // Tambahkan padding di sini
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            getAppBarUI('My Activity'),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (selectedActivity.photo != null)
+                          Container(
+                            height: 200, // Adjust height as needed
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: selectedActivity.photo!,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    SizedBox(height: 10,),
-                    if (selectedActivity.descTxt != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          selectedActivity.descTxt!,
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        SizedBox(height: 10,),
+                        if (selectedActivity.descTxt != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              selectedActivity.descTxt!,
+                              textAlign: TextAlign.justify,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    SizedBox(height: 30,),
-                    if (selectedActivity.full != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(selectedActivity.full!,
-                            textAlign: TextAlign.justify),
-                      ),
-                  ],
-                ),
+                        SizedBox(height: 30,),
+                        if (selectedActivity.full != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(selectedActivity.full!,
+                                textAlign: TextAlign.justify),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pukulenam/PartView/Cardview.dart';
+import 'package:pukulenam/PartView/Profile.dart';
+import 'package:pukulenam/UI/FormAdapter.dart';
 import 'package:pukulenam/UI/MainView.dart';
+
+import 'PartView/PukulEnam.dart';
+import 'UI/ChatAdapter.dart';
 
 void main(){
   runApp(const MyApp());
@@ -18,7 +24,7 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scaffoldBackgroundColor: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
 

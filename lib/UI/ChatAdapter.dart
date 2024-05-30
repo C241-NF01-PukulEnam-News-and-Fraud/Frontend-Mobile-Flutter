@@ -1,20 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pukulenam/PartView/Profile.dart';
-import 'package:pukulenam/UI/FormAdapter.dart';
 
 import '../NavBar/BottomBar.dart';
 import '../NavBar/TabIconData.dart';
 import '../PartView/Cardview.dart';
+import '../PartView/ChatBox.dart';
+import '../PartView/FormView.dart';
 import '../Themes/MainThemes.dart';
-import 'ChatAdapter.dart';
 
-class CardList extends StatefulWidget {
+class ChatAdapter extends StatefulWidget {
   @override
-  _CardListState createState() => _CardListState();
+  _ChatAdapterState createState() => _ChatAdapterState();
 }
 
-class _CardListState extends State<CardList>
+class _ChatAdapterState extends State<ChatAdapter>
     with TickerProviderStateMixin {
   AnimationController? animationController;
 
@@ -32,7 +32,7 @@ class _CardListState extends State<CardList>
 
     animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
-    tabBody = CardView(animationController: animationController);
+    tabBody = ChatBox(animationController: animationController);
     super.initState();
   }
 
@@ -80,12 +80,7 @@ class _CardListState extends State<CardList>
         ),
         BottomBarView(
           tabIconsList: tabIconsList,
-          addClick: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => FormAdapter()),
-            );
-          },
+          addClick: () {},
           changeIndex: (int index) {
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
@@ -117,16 +112,12 @@ class _CardListState extends State<CardList>
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
                   return
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ChatAdapter()),
-                    );
+                    setState(() {
+
+                    });
                 }
                 setState(() {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ChatAdapter()),
-                  );
+
                 });
               });
             }

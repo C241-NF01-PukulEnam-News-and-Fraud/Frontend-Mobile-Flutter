@@ -7,6 +7,7 @@ import '../PartView/Cardview.dart';
 import '../PartView/TrendingView.dart';
 import '../Themes/MainThemes.dart';
 
+
 class TrendingAdapter extends StatefulWidget {
   @override
   _TrendingAdapterState createState() => _TrendingAdapterState();

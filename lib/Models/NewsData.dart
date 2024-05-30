@@ -1,8 +1,12 @@
 import 'dart:developer';
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+
+
 
 class NewsListData {
   NewsListData({
@@ -94,33 +98,7 @@ class NewsListData {
     )
   ];
 }
-/*
 
-void createActivityFeedingListData(int gram) {
-  // Create a new ActivityListData object using the submitted text
-  ActivityListData newData = ActivityListData(
-    titleTxt: 'Feeding',
-    gram: gram,
-    Time: DateFormat('kk:mm:ss \n EEE d MMM').format(now).toString(),
-    startColor: '#FA7D82',
-    endColor:  '#FFB295',
-  );
 
-  ActivityListData.tabIconsList.add(newData);
+ 
 
-}
-
-void createActivityWateringListData(int liter) {
-  DateTime now = DateTime.now();
-  log(DateFormat('kk:mm:ss \n EEE d MMM').format(now).toString());
-  ActivityListData newData = ActivityListData(
-    titleTxt: 'Watering',
-    liter: liter,
-    Time: DateFormat('kk:mm:ss \n EEE d MMM').format(now).toString(),
-    startColor: '#0000FF',
-    endColor:  '#1E90FF',
-  );
-
-  ActivityListData.tabIconsList.add(newData);
-
-}*/

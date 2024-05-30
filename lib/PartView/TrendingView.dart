@@ -13,6 +13,7 @@ import 'package:pukulenam/Models/NewsData.dart';
 import '../Themes/MainThemes.dart';
 import '../UI/DescriptionAdapter.dart';
 
+
 class TrendingView extends StatefulWidget {
   const TrendingView({Key? key, this.animationController}) : super(key: key);
 
@@ -265,6 +266,7 @@ class ActivityCard extends StatelessWidget {
     );
   }
 }
+
 
 
 
