@@ -8,6 +8,8 @@ import '../PartView/Cardview.dart';
 import '../PartView/ChatBox.dart';
 import '../PartView/FormView.dart';
 import '../Themes/MainThemes.dart';
+import 'FormAdapter.dart';
+import 'TrendingAdapter.dart';
 
 class ChatAdapter extends StatefulWidget {
   @override
@@ -33,6 +35,7 @@ class _ChatAdapterState extends State<ChatAdapter>
     animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     tabBody = ChatBox(animationController: animationController);
+    tabIconsList[2].isSelected = true;
     super.initState();
   }
 
@@ -80,61 +83,56 @@ class _ChatAdapterState extends State<ChatAdapter>
         ),
         BottomBarView(
           tabIconsList: tabIconsList,
-          addClick: () {},
+          addClick: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FormAdapter()),
+            );
+          },
+
           changeIndex: (int index) {
+            print("mounted ${mounted}");
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return
-                    setState(() {
-
-                    });
+                  return;
                 }
                 setState(() {
-
+                  tabBody =
+                      CardView(animationController: animationController);
                 });
               });
             }
-            else if (index ==1){
+            else if (index == 1 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return
-                    setState(() {
-
-                    });
+                  return;
                 }
                 setState(() {
-
+                  tabBody =
+                      TrendingAdapter();
                 });
               });
             }
-            else if(index == 2){
+            else if (index == 2 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return
-                    setState(() {
-
-                    });
+                  return;
                 }
                 setState(() {
-
+                  tabBody =
+                      ChatAdapter();
                 });
               });
             }
-            else if (index == 3 ) {
+            else if (index == 4 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileSettings()),
-                    );
+                  return;
                 }
                 setState(() {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfileSettings()),
-                  );
+                  tabBody =
+                      ProfileSettings();
                 });
               });
             }

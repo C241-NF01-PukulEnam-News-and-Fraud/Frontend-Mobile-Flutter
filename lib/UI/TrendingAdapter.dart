@@ -1,11 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'MainView.dart';
 import '../NavBar/BottomBar.dart';
 import '../NavBar/TabIconData.dart';
 import '../PartView/Cardview.dart';
+import '../PartView/Profile.dart';
 import '../PartView/TrendingView.dart';
 import '../Themes/MainThemes.dart';
+import 'ChatAdapter.dart';
+import 'FormAdapter.dart';
 
 
 class TrendingAdapter extends StatefulWidget {
@@ -32,7 +35,9 @@ class _TrendingAdapterState extends State<TrendingAdapter>
     animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     tabBody = TrendingView(animationController: animationController);
+    tabIconsList[1].isSelected = true;
     super.initState();
+
   }
 
   @override
@@ -79,22 +84,58 @@ class _TrendingAdapterState extends State<TrendingAdapter>
         ),
         BottomBarView(
           tabIconsList: tabIconsList,
-          addClick: () {},
+          addClick: () {
+
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FormAdapter()),
+            );
+          },
+
           changeIndex: (int index) {
-            if (index == 0) {
-              animationController?.reverse().then<dynamic>((data) {
-                Navigator.of(context).pop();
-              });
-            }else if (index == 1 || index == 3) {
+            print("mounted ${mounted}");
+            if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return
-                    setState(() {
-
-                    });
+                  return;
                 }
                 setState(() {
-
+                  tabBody =
+                      CardList();
+                });
+              });
+            }
+            else if (index == 1 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      TrendingView(animationController: animationController,);
+                });
+              });
+            }
+            else if (index == 2 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      ChatAdapter();
+                });
+              });
+            }
+            else if (index == 4 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      ProfileSettings();
                 });
               });
             }

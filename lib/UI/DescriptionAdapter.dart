@@ -1,10 +1,15 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pukulenam/PartView/DescriptionView.dart';
+import 'package:pukulenam/UI/MainView.dart';
 
 import '../NavBar/BottomBar.dart';
 import '../NavBar/TabIconData.dart';
+import '../PartView/Cardview.dart';
+import '../PartView/Profile.dart';
 import '../Themes/MainThemes.dart';
+import 'ChatAdapter.dart';
+import 'FormAdapter.dart';
+import 'TrendingAdapter.dart';
 
 class DescriptionAdapter extends StatefulWidget {
   final int index;
@@ -16,7 +21,7 @@ class DescriptionAdapter extends StatefulWidget {
 }
 
 class _DescriptionAdapterState extends State<DescriptionAdapter>
-    with TickerProviderStateMixin{
+    with TickerProviderStateMixin {
   late AnimationController animationController;
   late int index;
   List<TabIconData> tabIconsList = TabIconData.tabIconsList;
@@ -24,17 +29,22 @@ class _DescriptionAdapterState extends State<DescriptionAdapter>
     color: MainAppTheme.background,
   );
 
-
   @override
   void initState() {
+    super.initState();
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
     index = widget.index;
     animationController = AnimationController(
-        duration: const Duration(milliseconds: 600), vsync: this);
-    tabBody = DescriptionView(animationController: animationController, activityIndex: index,);
-    super.initState();
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    tabBody = DescriptionView(
+      animationController: animationController,
+      activityIndex: index,
+    );
+
   }
 
   @override
@@ -43,29 +53,32 @@ class _DescriptionAdapterState extends State<DescriptionAdapter>
     super.dispose();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Color(0xFFF2F3F8),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: FutureBuilder<bool>(
-          future: getData(),
-          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-            if (!snapshot.hasData) {
-              return const SizedBox();
-            } else {
-              return Stack(
-                children: <Widget>[
-                  DescriptionView(
-                    animationController: animationController,
-                    activityIndex: index,
-                  ),
-                  bottomBar(),
-                ],
-              );
-            }
-          },
+        body: Stack(
+          children: <Widget>[
+            FutureBuilder<bool>(
+              future: getData(),
+              builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                if (!snapshot.hasData) {
+                  return const SizedBox();
+                } else {
+                  return Stack(
+                    children: <Widget>[
+                      tabBody,
+                      bottomBar(),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -86,18 +99,57 @@ class _DescriptionAdapterState extends State<DescriptionAdapter>
           tabIconsList: tabIconsList,
           addClick: () {
 
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FormAdapter()),
+            );
           },
+
           changeIndex: (int index) {
-            if (index == 0) {
-              animationController?.reverse().then<dynamic>((data) {
-                Navigator.of(context).pop();
-              });
-            } else if (index == 1 || index == 3) {
+            print("mounted ${mounted}");
+            if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {
-                  return setState(() {});
+                  return;
                 }
-                setState(() {});
+                setState(() {
+                  tabBody =
+                      CardView(animationController: animationController);
+                });
+              });
+            }
+            else if (index == 1 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      TrendingAdapter();
+                });
+              });
+            }
+            else if (index == 2 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      ChatAdapter();
+                });
+              });
+            }
+            else if (index == 4 ) {
+              animationController?.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody =
+                      ProfileSettings();
+                });
               });
             }
           },

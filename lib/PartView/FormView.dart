@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../Themes/MainThemes.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter/widgets.dart' show ByteData, WidgetsFlutterBinding;
-import 'package:tflite_flutter/tflite_flutter.dart';
-import 'dart:typed_data';
-import 'dart:developer';
+import 'package:pukulenam/Models/Fraud.dart';
+import 'package:http/http.dart' as http;
 
 class FormView extends StatefulWidget {
   const FormView({
@@ -20,18 +18,12 @@ class FormView extends StatefulWidget {
   _FormViewState createState() => _FormViewState();
 }
 
-class _FormViewState extends State<FormView>
-    with TickerProviderStateMixin {
-  late Interpreter interpreter;
-  bool isModelReady = false;
+class _FormViewState extends State<FormView> with TickerProviderStateMixin {
   late AnimationController animationController;
-  final TextEditingController urlController = TextEditingController();
   final TextEditingController explanationController = TextEditingController();
-  String status = "Valid"; // Default status
 
   @override
   void initState() {
-    loadModel();
     super.initState();
     animationController = AnimationController(
       vsync: this,
@@ -39,85 +31,106 @@ class _FormViewState extends State<FormView>
     );
     animationController.forward();
   }
-  Future<void> loadModel() async {
-    try {
-      interpreter = await Interpreter.fromAsset('assets/flatten.tflite');
-      setState(() {
-        isModelReady = true;
-      });
-      log('Model loaded successfully');
-    } catch (e) {
-      log('Failed to load model: $e');
-    }
-  }
+
   @override
   void dispose() {
     animationController.dispose();
-    interpreter.close();
-    urlController.dispose();
     explanationController.dispose();
     super.dispose();
   }
-  Future<void> _handleFormSubmission() async {
-    if (!isModelReady) {
-      log('Model is not ready');
-      return;
-    }
 
-    String inputText = explanationController.text;
 
-    List<int> inputBytes = utf8.encode(inputText);
-    var inputShape = interpreter.getInputTensor(0).shape;
-    var inputType = interpreter.getInputTensor(0).type;
-    var outputShape = interpreter.getOutputTensor(0).shape;
-    var outputType = interpreter.getOutputTensor(0).type;
-
-    print("Input shape: $inputShape, type: $inputType");
-    print("Output shape: $outputShape, type: $outputType");
-
-    // Ensure the input length matches the expected input shape
-    int inputLength = inputShape[1];
-    List<double> inputFloats = List<double>.filled(inputLength, 0.0);
-
-    for (int i = 0; i < inputLength; i++) {
-      if (i < inputBytes.length) {
-        inputFloats[i] = inputBytes[i].toDouble();
-      } else {
-        inputFloats[i] = 0.0; // Pad with zeros if inputBytes is shorter
-      }
-    }
-    print(inputFloats);
-
-// Create inputs and outputs tensors
-    var inputs = [inputFloats];
-    var outputs = List.filled(1*1, 0.0).reshape([1,1]);
-    // Perform inference
-    //var inputs = [inputBytes];
-    //var outputs = List<double>.filled(1, 0).reshape([1, 1]);
-    print("input : $inputs");
-    print("output : $outputs");
-    interpreter.run(inputs, outputs);
-    print(outputs);
-    double result = outputs[0][0];
-    String status = result > 0.5 ? 'Hoax' : 'Valid';
-    print(result);
-    log(status);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('$status'),
-        content: Text('Explanation: $inputText'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
+  Future<FraudData> fetchFraud(String fraudNews) async {
+    final response = await http.post(
+      Uri.parse('https://pukul-enam-server-model-api-73t3gncdha-et.a.run.app/classification'),
+      headers: {
+        'Authorization': 'Bearer 2837b4e5c8ce7a7be2d39ada35aaa334',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'text': fraudNews}), // Ensure the key is correct based on API requirements
     );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return FraudData.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load fraud data : ${response.body}');
+    }
+  }
+
+  Future<void> _handleFormSubmission() async {
+    try {
+      String inputText = explanationController.text;
+      FraudData fraudData = await fetchFraud(inputText);
+      String resultPercentage = (fraudData.Result[0] * 100).toStringAsFixed(2) + '%';
+      String status = fraudData.Sentiment == 'positive' ? 'Valid' : 'Hoax';
+      Color statusColor = fraudData.Sentiment == 'positive' ? Colors.green : Colors.red;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Center(
+            child: Text(
+              '$status',
+              style: TextStyle(
+                color: statusColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Hoax Percentage: ${resultPercentage}', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 8),
+              Text('Entities:', style: TextStyle(fontSize: 16)),
+              ...fraudData.Entities.map((entity) => Text('- $entity', style: TextStyle(fontSize: 14))),
+              SizedBox(height: 16),
+              InkWell(
+                child: Text(
+                  'Search Validation News',
+                  style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                ),
+                onTap: () {
+                  String query = inputText.split(' ').take(30).join(' ');
+                  String googleSearchUrl = 'https://www.google.com/search?q=$query';
+                  launch(googleSearchUrl);
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('Error: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Failed to load news. Please try again later.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget getAppBarUI() {
@@ -180,7 +193,6 @@ class _FormViewState extends State<FormView>
             );
           },
         ),
-
       ],
     );
   }
@@ -211,9 +223,7 @@ class _FormViewState extends State<FormView>
                   SizedBox(height: 16),
                   // Submit button
                   ElevatedButton(
-                    onPressed: (){
-                      log('Submit button pressed');
-                      _handleFormSubmission();},
+                    onPressed: _handleFormSubmission,
                     style: ElevatedButton.styleFrom(
                       primary: MainAppTheme.lightBlue,
                     ),

@@ -1,9 +1,10 @@
-import 'dart:developer';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pukulenam/Models/NewsData.dart';
 import '../Themes/MainThemes.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:share/share.dart';
 
 class DescriptionView extends StatefulWidget {
   const DescriptionView({
@@ -22,7 +23,7 @@ class DescriptionView extends StatefulWidget {
 class _DescriptionViewState extends State<DescriptionView>
     with TickerProviderStateMixin {
   late AnimationController animationController;
-  late NewsListData selectedActivity;
+  late Future<NewsData> selectedActivity;
 
   @override
   void initState() {
@@ -32,7 +33,30 @@ class _DescriptionViewState extends State<DescriptionView>
       duration: const Duration(milliseconds: 2000),
     );
     animationController.forward();
-    selectedActivity = NewsListData.tabIconsList[widget.activityIndex];
+    selectedActivity = fetchNews(widget.activityIndex);
+  }
+
+  Future<NewsData> fetchNews(int activityIndex) async {
+    final response = await http.get(
+      Uri.parse('https://pukulenam.id/wp-json/wp/v2/posts/$activityIndex'),
+      headers: {
+        'Authorization': 'Basic cHVrdWxlbmFtOnB1a3VsZW5hbVBBUyE=',
+      },
+    );
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      print(response.body);
+      print('activity indexnya padahal $activityIndex');
+
+      final data = json.decode(response.body);
+
+      // Assuming the response is a single object
+      NewsData news = NewsData.fromJson(data);
+
+      return news;
+    } else {
+      throw Exception('Failed to load news. Status Code: ${response.statusCode}');
+    }
   }
 
   @override
@@ -41,7 +65,7 @@ class _DescriptionViewState extends State<DescriptionView>
     super.dispose();
   }
 
-  Widget getAppBarUI(String name) {
+  Widget getAppBarUI(String name, String author, String newsLink) {
     return Column(
       children: <Widget>[
         AnimatedBuilder(
@@ -86,7 +110,7 @@ class _DescriptionViewState extends State<DescriptionView>
                                   height: 60,
                                   color: Colors.grey,
                                   child: Image(
-                                    image: selectedActivity.photo ?? AssetImage(''),
+                                    image: NetworkImage('$author'),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -98,39 +122,11 @@ class _DescriptionViewState extends State<DescriptionView>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    selectedActivity.source,
+                                    name,
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  selectedActivity?.status != "Hoax"
-                                      ? Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      selectedActivity.status,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                      : Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      selectedActivity.status,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
                                     ),
                                   ),
                                 ],
@@ -139,6 +135,7 @@ class _DescriptionViewState extends State<DescriptionView>
                             IconButton(
                               onPressed: () {
                                 // Handle share button press
+                                Share.share('Check out this hottest news: $newsLink');
                               },
                               icon: Icon(Icons.share),
                               color: Colors.black,
@@ -160,57 +157,74 @@ class _DescriptionViewState extends State<DescriptionView>
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 80.0), // Tambahkan padding di sini
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            getAppBarUI('My Activity'),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (selectedActivity.photo != null)
-                          Container(
-                            height: 200, // Adjust height as needed
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: selectedActivity.photo!,
-                                fit: BoxFit.cover,
+            FutureBuilder<NewsData>(
+              future: selectedActivity,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                      children: [CircularProgressIndicator()]);
+                } else if (snapshot.hasError) {
+                  return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [Text('Failed to load news')]);
+                } else if (snapshot.hasData) {
+                  final newsData = snapshot.data!;
+                  var document = HtmlWidget(newsData.content!);
+
+                  return Column(
+                    children: [
+                      getAppBarUI(newsData.author ?? 'Unknown Author', newsData.authorpp ?? '',newsData.link ?? ''),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (newsData.imageUrl != null)
+                              Container(
+                                height: 200, // Adjust height as needed
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: NetworkImage(newsData.imageUrl!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        SizedBox(height: 10,),
-                        if (selectedActivity.descTxt != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              selectedActivity.descTxt!,
-                              textAlign: TextAlign.justify,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            SizedBox(height: 10),
+                            if (newsData.title != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Text(
+                                  newsData.title!,
+                                  textAlign: TextAlign.justify,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        SizedBox(height: 30,),
-                        if (selectedActivity.full != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text(selectedActivity.full!,
-                                textAlign: TextAlign.justify),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                            SizedBox(height: 30),
+                            if (newsData.content != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: document,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Center(child: Text('No data available'));
+                }
+              },
             ),
+            SizedBox(height: 100,)
           ],
         ),
       ),

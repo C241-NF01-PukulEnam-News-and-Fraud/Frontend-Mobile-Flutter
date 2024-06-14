@@ -1,104 +1,76 @@
-import 'dart:developer';
-import 'dart:ui';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
+class NewsData {
+  final int id;
+  final DateTime date;
+  final String title;
+  final String content;
+  final String excerpt;
+  final String author;
+  final String imageUrl;
+  final String selfUrl;
+  final String category;
+  final String authorpp;
+  final String link;
 
-
-
-class NewsListData {
-  NewsListData({
-    this.descTxt = '',
-    this.startColor = '',
-    this.endColor = '',
-    this.source = '',
-    this.status= '',
-    this.full='',
-    this.photo,
+  NewsData({
+    required this.id,
+    required this.date,
+    required this.title,
+    required this.content,
+    required this.excerpt,
+    required this.author,
+    required this.imageUrl,
+    required this.selfUrl,
+    required this.category,
+    required this.authorpp,
+    required this.link
   });
 
-  String descTxt;
-  String startColor;
-  String endColor;
-  String source;
-  String status;
-  String full;
-  ImageProvider? photo;
+  factory NewsData.fromJson(Map<String, dynamic> json) {
+    String category = '';
+    String authorpp = '';
+    String author = '';
+    String imageUrl = '';
 
-  static List<NewsListData> tabIconsList = <NewsListData>[
-    NewsListData(
-      descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-      startColor: '#FA7D82',
-      endColor: '#FFB295',
-      full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
-      photo: AssetImage("assets/images/rior.jpg"),
-      source: "Mail Online",
-      status: "Hoax"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
-        source: "Mail Online",
-        status: "Hoax"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
+    try {
+      category = json['yoast_head_json']['schema']['@graph'][0]['keywords'][0] ?? '';
+    } catch (e) {
+      print('Error accessing category: $e');
+    }
 
-        source: "Mail Online",
-        status: "Valid"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
+    try {
+      authorpp = json['yoast_head_json']['schema']['@graph'][6]['image']['url'] ?? '';
+    } catch (e) {
+      print('Error accessing authorpp: $e');
+    }
 
-        source: "Mail Online",
-        status: "Hoax"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
+    try {
+      author = json['yoast_head_json']['author'] ?? '';
+    } catch (e) {
+      print('Error accessing author: $e');
+    }
 
-        source: "Mail Online",
-        status: "Hoax"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
+    try {
+      imageUrl = json['yoast_head_json']['schema']['@graph'][0]['thumbnailUrl'] ?? '';
+    } catch (e) {
+      print('Error accessing imageUrl: $e');
+    }
 
-        source: "Mail Online",
-        status: "Hoax"
-    ),
-    NewsListData(
-        descTxt: 'Rio Ferdinand slams Man United\'s lack of concentration for Cole Palmer\'s 101st-minute winner for Chelsea as he points',
-        startColor: '#FA7D82',
-        endColor: '#FFB295',
-        photo: AssetImage("assets/images/rior.jpg"),
-        full: "Ferdinand was astounded by the freedom Palmer was afforded for his winner and slammed the player's focus.\n\n 'Concentration plays a huge part at the end of these games.\' He said on TNT Sports post-match. There\'s a lot riding on these games, huge pressure, I know that. In the madness and chaos, you have to have people who are really on top of their game, concentrating, pointing, yelling. Pushing people about. The corner comes for the winner.",
-
-        source: "Mail Online",
-        status: "Hoax"
-    )
-  ];
+    return NewsData(
+      id: json['id'],
+      date: DateTime.parse(json['date']),
+      title: json['title']['rendered'],
+      content: json['content']['rendered'],
+      excerpt: json['excerpt']['rendered'],
+      author: author,
+      imageUrl: imageUrl,
+      selfUrl: json['_links']['self'][0]['href'],
+      category: category,
+      authorpp: authorpp,
+      link : json['link']
+    );
+  }
 }
-
-
- 
-

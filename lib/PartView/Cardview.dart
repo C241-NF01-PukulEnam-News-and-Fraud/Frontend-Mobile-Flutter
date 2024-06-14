@@ -1,17 +1,17 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:pukulenam/Models/Author.dart';
+import 'package:pukulenam/Models/NewsData.dart';
+import 'package:pukulenam/Models/ProfileData.dart';
 import 'package:pukulenam/Models/NewsSource.dart';
 import 'package:pukulenam/UI/DescriptionAdapter.dart';
-
+import 'package:pukulenam/UI/TrendingAdapter.dart';
 import '../Json/Category.dart';
-import '../Models/NewsData.dart';
-import '../Models/ProfileData.dart';
 import '../Themes/MainThemes.dart';
-import '../UI/TrendingAdapter.dart';
-import 'DescriptionView.dart';
-
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class CardView extends StatefulWidget {
   const CardView({Key? key, this.animationController}) : super(key: key);
 
@@ -24,23 +24,77 @@ class CardView extends StatefulWidget {
 class _CardViewState extends State<CardView> with TickerProviderStateMixin {
   late AnimationController animationController;
   late TabController _tabController;
-  late List<NewsListData> activityListData;
-  late List<NewsListData> filteredActivityListData;
-  late List<NewsSource> newsSource;
-
+  late Future<List<NewsData>> futureNewsList;
+  late Future<List<AuthorData>> futureAuthorList;
   Object? get selectedCategory => null;
 
   @override
   void initState() {
     super.initState();
+    futureNewsList = fetchNewsList();
+    futureAuthorList = fetchAuthorList();
     animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     );
     animationController.forward();
-    activityListData = NewsListData.tabIconsList;
-    filteredActivityListData = activityListData;
     _tabController = TabController(vsync: this, length: 2);
+  }
+
+  Future<List<NewsData>> fetchNewsList() async {
+    final response = await http.get(
+      Uri.parse('https://pukulenam.id/wp-json/wp/v2/posts?categories=1'),
+      headers: {
+        'Authorization': 'Basic cHVrdWxlbmFtOnB1a3VsZW5hbVBBUyE=',
+      },
+    );
+    print("aaaaaaaaaaaaaaaaaaaaaaaaa");
+    if (response.statusCode == 200) {
+      List<NewsData> newsList = [];
+      List<dynamic> data = json.decode(response.body);
+
+      data.forEach((item) {
+        try {
+          NewsData news = NewsData.fromJson(item);
+          newsList.add(news);
+        } catch (e) {
+          print('Error parsing item: $item');
+          print(e);
+        }
+      });
+      return newsList;
+    } else {
+      print("xxxxxxxxxxxxxxxxx");
+      throw Exception('Failed to load news');
+    }
+  }
+
+  Future<List<AuthorData>> fetchAuthorList() async {
+    final response = await http.get(
+      Uri.parse('https://pukulenam.id/wp-json/wp/v2/users'),
+      headers: {
+        'Authorization': 'Basic cHVrdWxlbmFtOnB1a3VsZW5hbVBBUyE=',
+      },
+    );
+    print("aaaaaaaaaaaaaaaaaaaaaaaaa");
+    if (response.statusCode == 200) {
+      List<AuthorData> authorList = [];
+      List<dynamic> data = json.decode(response.body);
+
+      data.forEach((item) {
+        try {
+          AuthorData news = AuthorData.fromJson(item);
+          authorList.add(news);
+        } catch (e) {
+          print('Error parsing item: $item');
+          print(e);
+        }
+      });
+      return authorList;
+    } else {
+      print("xxxxxxxxxxxxxxxxx");
+      throw Exception('Failed to load news');
+    }
   }
 
   @override
@@ -51,13 +105,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
   }
 
   Widget getAppBarUI(String name) {
-    final List<Menu> menu = (json.decode(menuJson)['menu'] as List)
-        .map((data) => Menu.fromJson(data))
-        .toList();
-    List<Menu> subMenuItems = [];
-    for (var item in menu) {
-      subMenuItems.addAll(item.subMenu);
-    }
+
     return Column(
       children: <Widget>[
         AnimatedBuilder(
@@ -103,7 +151,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
                                   height: 60,
                                   color: Colors.grey, // Warna latar belakang foto
                                   child: Image(
-                                    image: ProfileData.tabIconsList.first.photo ?? AssetImage(''),
+                                    image: AssetImage('assets/images/pukulenam.jpg'),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -144,30 +192,20 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
           labelColor: Colors.purple,
           tabs: [
             Tab(text: 'News'),
-            Tab(text: 'Fraud'),
+            Tab(text: 'AI Consultant'),
           ],
           indicatorColor: Colors.purple,
           indicatorSize: TabBarIndicatorSize.label,
         ),
 
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              SizedBox(width: 10),
-              ...subMenuItems.map((subItem) => _buildCategoryButton(subItem.text, _isSelected(subItem.text))).toList(),
-              SizedBox(width: 16),
-            ],
-          ),
-        ),
-
       ],
     );
   }
+
   bool _isSelected(String category) {
     return category == selectedCategory;
   }
+
   Widget _buildCategoryButton(String category, bool isSelected) {
     return ElevatedButton(
       onPressed: () {
@@ -194,219 +232,402 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
     );
   }
 
-
-
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        getAppBarUI('My Activity'), // AppBar with name and tabs
-        Expanded(
-          child: AnimatedBuilder(
-            animation: animationController,
-            builder: (BuildContext context, Widget? child) {
-              return FadeTransition(
-                opacity: animationController,
-                child: Transform(
-                  transform: Matrix4.translationValues(
-                    0.0,
-                    30 * (1.0 - animationController.value),
-                    0.0,
-                  ),
-                  child: Container(
-                    height: double.infinity,
-                    width: double.infinity,
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        // Content for News tab
-                        SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
+    Widget build(BuildContext context) {
+      void _launchURL(String url) async {
+        if (await canLaunch(url)) {
+          await launch(url);
+        } else {
+          throw 'Could not launch $url';
+        }
+      }
+      final List<Menu> menu = (json.decode(menuJson)['menu'] as List)
+          .map((data) => Menu.fromJson(data))
+          .toList();
+      List<Menu> subMenuItems = [];
+      for (var item in menu) {
+        subMenuItems.addAll(item.subMenu);
+      }
+      return Column(
+        children: <Widget>[
+          getAppBarUI('My Activity'), // AppBar with name and tabs
+          Expanded(
+            child: AnimatedBuilder(
+              animation: animationController,
+              builder: (BuildContext context, Widget? child) {
+                return FadeTransition(
+                  opacity: animationController,
+                  child: Transform(
+                    transform: Matrix4.translationValues(
+                      0.0,
+                      30 * (1.0 - animationController.value),
+                      0.0,
+                    ),
+                    child: Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10),
+                                      ...subMenuItems.map((subItem) => _buildCategoryButton(subItem.text, _isSelected(subItem.text))).toList(),
+                                      SizedBox(width: 16),
+                                    ],
+                                  ),
+                                ),
 
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Popular Redaction',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Author',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 10,),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: List.generate(
-                                          NewsSource.tabIconsList.length,
-                                              (index) {
-                                            final NewsSource source = NewsSource.tabIconsList[index];
-                                            return Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: ClipOval(
-                                                child: Container(
-                                                  width: 70,
-                                                  height: 70,
-                                                  decoration: BoxDecoration(
-                                                    color : Colors.grey,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black.withOpacity(0.2),
-                                                        spreadRadius: 2,
-                                                        blurRadius: 3,
-                                                        offset: Offset(0, 2),
+                                      SizedBox(height: 10),
+                                        FutureBuilder(
+                                          future: futureAuthorList,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              List<AuthorData> authorList = snapshot.data!;
+                                              return SingleChildScrollView(
+                                                scrollDirection: Axis.horizontal,
+                                                child: Row(
+                                                  children: List.generate(authorList.length-1, (index) {
+                                                    print(authorList[index].selfUrl);
+                                                    return Authors(
+                                                      authorData: authorList[index],
+                                                      animationController: animationController,
+                                                      animation: Tween<double>(
+                                                        begin: 0.0,
+                                                        end: 1.0,
+                                                      ).animate(
+                                                        CurvedAnimation(
+                                                          parent: animationController,
+                                                          curve: Interval(
+                                                            (1 / authorList.length) * index,
+                                                            1.0,
+                                                            curve: Curves.fastOutSlowIn,
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ],
-                                                  ),
-                                                  child: Image(
-                                                    image: source.photo ?? AssetImage(''),
-                                                    fit: BoxFit.cover,
-                                                  ),
+                                                      onPressed: () {
+                                                        print(authorList[index].selfUrl);
+                                                        _launchURL(authorList[index].selfUrl);
+                                                      },
+                                                    );
+                                                  }),
                                                 ),
-                                              ),
+                                              );
+                                            } else if (snapshot.hasError) {
+                                              return Center(
+                                              );
+                                            }
+                                            return Center(
                                             );
                                           },
                                         ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 10,),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Trending',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (context) => TrendingAdapter()),
-                                            );
-                                          },
-                                          child: Text(
-                                            'View All',
+
+
+                                      SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Daily',
                                             style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.purple,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.bold,
+                                              color: Colors.black,
                                             ),
                                           ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                    ],
+                                  ),
+                                ),
+                                // News cards
+                                FutureBuilder<List<NewsData>>(
+                                  future: futureNewsList,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      List<NewsData> newsList = snapshot.data!;
+                                      return Column(
+                                        children: List.generate(5, (index) {
+                                          final Animation<double> animation = Tween<double>(
+                                            begin: 0.0,
+                                            end: 1.0,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animationController,
+                                              curve: Interval((1 / newsList.length) * index, 1.0,
+                                                  curve: Curves.fastOutSlowIn),
+                                            ),
+                                          );
+                                          return ActivityCard(
+                                            newsData: newsList[index],
+                                            animationController: animationController,
+                                            animation: animation,
+                                            onPressed: () async {
+                                              final response = await http.get(Uri.parse(newsList[index].selfUrl),
+                                                headers: {
+                                                  'Authorization': 'Basic cHVrdWxlbmFtOnB1a3VsZW5hbVBBUyE=', // Your authorization header
+                                                },
+                                              );
+                                              print(response.statusCode);
+                                              print(json.decode(response.body)['id']);
+                                              if (response.statusCode == 200) {
+                                                final dynamic data = json.decode(response.body);
+                                                int lastEndpoint =data['id'];
+                                                print(lastEndpoint);
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => DescriptionAdapter(index: lastEndpoint)),
+                                                );
+                                              } else {
+                                                throw Exception('Failed to load endpoint');
+                                              }
+
+
+                                            },
+                                          );
+                                        }),
+
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      print(snapshot);
+                                      return Center(
+                                        child: Text('Failed to load news'),
+                                      );
+                                    }
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                ),
+                               SizedBox(height: 100,),
+                              ],
+                            ),
+                          ),
+                          // Content for Fraud tab
+                          SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => _launchURL('https://calendly.com/alvinbuanaa/aineedconsultancy'),
+                                        child:Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.2),
+                                                offset: Offset(4, 4),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                            color: Colors.white,
+                                          ),
+                                          width: double.infinity,
+                                          margin: EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(vertical: 8),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children:[
+                                              Icon(
+                                                  Icons.calendar_month
+                                              ),
+                                              SizedBox(width: 5,),
+                                              Text(
+                                                'Jadwalkan Konsultasi Gratis (Alvin)',
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
+                                        ) ,
+                                      ),
+                                      SizedBox(height: 10,),
+                                      InkWell(
+                                        onTap: () => _launchURL('https://wa.me/6287877893100'),
+                                        splashColor: Colors.purple.withOpacity(0.3),
+                                        child : Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.2),
+                                                offset: Offset(4, 4),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                            color: Colors.white,
+                                          ),
+                                          width: double.infinity,
+                                          margin: EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(vertical: 8),
+                                          child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children:[
+                                                Icon(
+                                                    Icons.message
+                                                ),
+                                                SizedBox(width: 5,),
+                                                Text(
+                                                  'Hubungi Konsultan Kami (Alvin)',
+                                                  textAlign: TextAlign.center,
+                                                )
+                                              ]
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8),
+                                      ),
+                                      SizedBox(height: 10,),
+                                      InkWell(
+                                        onTap: () => _launchURL('https://iganarendra.my.id/booking'),
+                                        child:  Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.2),
+                                                offset: Offset(4, 4),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                            color: Colors.white,
+                                          ),
+                                          width: double.infinity,
+                                          margin: EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(vertical: 8),
+                                          child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children:[
+                                                Icon(
+                                                    Icons.calendar_month
+                                                ),
+                                                SizedBox(width: 5,),
+                                                Text(
+                                                  'Jadwalkan Konsultasi Gratis (Iga)',
+                                                  textAlign: TextAlign.center,
+                                                )
+                                              ]
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 10,),
+                                      InkWell(
+                                        onTap: () => _launchURL('https://wa.me/6285339435369'),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.2),
+                                                offset: Offset(4, 4),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                            color: Colors.white,
 
-                                  ],
+
+                                          ),
+                                          width: double.infinity,
+                                          margin: EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(vertical: 8),
+                                          child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children:[
+                                                Icon(
+                                                    Icons.message
+                                                ),
+                                                SizedBox(width: 5,),
+                                                Text(
+                                                  'Hubungi Konsultasi Gratis (Iga)',
+                                                  textAlign: TextAlign.center,
+                                                )
+                                              ]
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 20,),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: IconButton(
+                                              icon: FaIcon(FontAwesomeIcons.github),
+                                              onPressed: () => _launchURL('https://github.com/pukulenam/'),
+                                            ),
+                                          ),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: IconButton(
+                                              icon: FaIcon(FontAwesomeIcons.linkedin),
+                                              onPressed: () => _launchURL('https://www.linkedin.com/company/pukulenam'),
+                                            ),
+                                          ),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+
+                                            child: IconButton(
+                                              icon: FaIcon(FontAwesomeIcons.instagram),
+                                              onPressed: () => _launchURL('https://www.instagram.com/pukulenam.id'),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  )
                                 ),
-                              ),
-
-
-                              // Activity cards
-                              ...List.generate(filteredActivityListData.length, (index) {
-                                final Animation<double> animation = Tween<double>(
-                                  begin: 0.0,
-                                  end: 1.0,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animationController,
-                                    curve: Interval((1 / filteredActivityListData.length) * index, 1.0,
-                                        curve: Curves.fastOutSlowIn),
-                                  ),
-                                );
-
-                                return ActivityCard(
-                                  activityListData: filteredActivityListData[index],
-                                  animation: animation,
-                                  animationController: animationController,
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => DescriptionAdapter(index: index)),
-                                    );
-                                  },
-                                );
-                              }),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        // Content for Fraud tab
-                        SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Paste URL',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                              ),
-                              // Fraud card list
-                              ...List.generate(filteredActivityListData.length, (index) {
-                                final Animation<double> animation = Tween<double>(
-                                  begin: 0.0,
-                                  end: 1.0,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animationController,
-                                    curve: Interval((1 / filteredActivityListData.length) * index, 1.0,
-                                        curve: Curves.fastOutSlowIn),
-                                  ),
-                                );
-
-                                return FraudCard(
-                                  activityListData: filteredActivityListData[index],
-                                  animation: animation,
-                                  animationController: animationController,
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => DescriptionAdapter(index: index)),
-                                    );
-                                  },
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
-
-    );
-  }
+        ],
+      );
+    }
 }
 
 class ActivityCard extends StatelessWidget {
   const ActivityCard({
     Key? key,
-    required this.activityListData,
+    required this.newsData,
     required this.animationController,
     required this.animation,
     required this.onPressed,
   }) : super(key: key);
 
-  final NewsListData activityListData;
+  final NewsData newsData;
   final AnimationController animationController;
   final Animation<double> animation;
   final VoidCallback? onPressed;
@@ -414,7 +635,7 @@ class ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onPressed, // Memanggil onPressed ketika card ditekan
+      onTap: onPressed,
       child: FadeTransition(
         opacity: animation,
         child: Transform(
@@ -440,7 +661,7 @@ class ActivityCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            activityListData.descTxt,
+                            newsData.title,
                             style: const TextStyle(
                               fontSize: 15,
                             ),
@@ -449,7 +670,7 @@ class ActivityCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            activityListData.source,
+                            newsData.author,
                             style: const TextStyle(
                               color: Colors.purple,
                             ),
@@ -461,9 +682,10 @@ class ActivityCard extends StatelessWidget {
                     SizedBox(width: 20),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image(
+                      child: Image.network(
+                        newsData.imageUrl,
                         height: 100,
-                        image: activityListData.photo ?? AssetImage(''),
+                        width: 130,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -478,26 +700,24 @@ class ActivityCard extends StatelessWidget {
   }
 }
 
-
-
-class FraudCard extends StatelessWidget {
-  const FraudCard({
+class Authors extends StatelessWidget {
+  const Authors({
     Key? key,
-    required this.activityListData,
+    required this.authorData,
     required this.animationController,
     required this.animation,
-    required this.onPressed, // Menambahkan properti onPressed
+    required this.onPressed,
   }) : super(key: key);
 
-  final NewsListData activityListData;
+  final AuthorData authorData;
   final AnimationController animationController;
   final Animation<double> animation;
-  final VoidCallback? onPressed; // Mendeklarasikan onPressed sebagai VoidCallback
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onPressed, // Memanggil onPressed ketika card ditekan
+      onTap: onPressed,
       child: FadeTransition(
         opacity: animation,
         child: Transform(
@@ -507,73 +727,33 @@ class FraudCard extends StatelessWidget {
             0.0,
           ),
           child: SizedBox(
-            height: 155,
-            child: Card(
-              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            activityListData.descTxt,
-                            style: const TextStyle(
-                              fontSize: 15,
+            child: Row(
+              children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: ClipOval(
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 3,
+                              offset: Offset(0, 2),
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 10),
-                          activityListData?.status != "Hoax"
-                              ? Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              activityListData.status,
-                              style: const TextStyle(
-                                color: Colors.white,
-                              ),
-                            ),
-                          )
-                              : Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              activityListData.status,
-                              style: const TextStyle(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                          ],
+                        ),
+                        child: Image.network(
+                          authorData.imageUrl,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                    SizedBox(width: 20),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image(
-                        height: 100,
-                        image: activityListData.photo ?? AssetImage(''),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -581,3 +761,6 @@ class FraudCard extends StatelessWidget {
     );
   }
 }
+
+
+
