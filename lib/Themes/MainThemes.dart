@@ -7,13 +7,13 @@ class MainAppTheme {
   static const Color nearlyWhite = Color(0xFFFAFAFA);
   static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF2F3F8);
-  static const Color nearlyDarkBlue = Color(0xFF2633C5);
+  static const Color nearlyDarkBlue = Color(0xFFCF2E2E);
 
-  static const Color nearlyBlue = Color(0xFF00B6F0);
+  static const Color nearlyBlue = Color(0xFFff6900);
   static const Color nearlyBlack = Color(0xFF213333);
   static const Color grey = Color(0xFF3A5160);
   static const Color dark_grey = Color(0xFF313A44);
-  static const Color lightBlue = Color(0xFF6A88E5);
+  static const Color lightBlue = Color(0xffff2e0f);
 
   static const Color darkText = Color(0xFF253840);
   static const Color darkerText = Color(0xFF17262A);

@@ -27,6 +27,9 @@ class _CardListState extends State<CardList>
 
   @override
   void initState() {
+    for(int i =0; i<4;i++){
+      print("tab ${i} : ${tabIconsList[i].isSelected}");
+    }
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
@@ -92,7 +95,7 @@ class _CardListState extends State<CardList>
           },
 
           changeIndex: (int index) {
-            print("mounted ${mounted}");
+            print("mounted main ${mounted}");
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {

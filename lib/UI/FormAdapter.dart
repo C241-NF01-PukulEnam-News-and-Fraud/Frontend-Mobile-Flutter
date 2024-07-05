@@ -27,6 +27,9 @@ class _FormAdapterState extends State<FormAdapter>
 
   @override
   void initState() {
+    for(int i =0; i<4;i++){
+      print("tab ${i} : ${tabIconsList[i].isSelected}");
+    }
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
@@ -91,7 +94,7 @@ class _FormAdapterState extends State<FormAdapter>
           },
 
           changeIndex: (int index) {
-            print("mounted ${mounted}");
+            print("mounted form ${mounted}");
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {

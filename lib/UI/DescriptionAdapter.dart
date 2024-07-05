@@ -31,6 +31,9 @@ class _DescriptionAdapterState extends State<DescriptionAdapter>
 
   @override
   void initState() {
+    for(int i =0; i<4;i++){
+      print("tab ${i} : ${tabIconsList[i].isSelected}");
+    }
     super.initState();
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
@@ -107,7 +110,7 @@ class _DescriptionAdapterState extends State<DescriptionAdapter>
           },
 
           changeIndex: (int index) {
-            print("mounted ${mounted}");
+            print("mounted desc ${mounted}");
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {

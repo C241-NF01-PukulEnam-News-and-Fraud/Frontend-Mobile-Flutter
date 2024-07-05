@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pukulenam/GetColor.dart';
 import 'package:pukulenam/Models/Author.dart';
 import 'package:pukulenam/Models/NewsData.dart';
 import 'package:pukulenam/Models/ProfileData.dart';
@@ -189,12 +190,12 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
         ),
         TabBar(
           controller: _tabController,
-          labelColor: Colors.purple,
+          labelColor: Colors.redAccent,
           tabs: [
             Tab(text: 'News'),
             Tab(text: 'AI Consultant'),
           ],
-          indicatorColor: Colors.purple,
+          indicatorColor: Colors.redAccent,
           indicatorSize: TabBarIndicatorSize.label,
         ),
 
@@ -216,7 +217,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
         backgroundColor: MaterialStateProperty.resolveWith<Color>(
               (Set<MaterialState> states) {
             if (states.contains(MaterialState.pressed)) {
-              return Colors.purple;
+              return Colors.redAccent;
             }
             return isSelected ? Colors.purple : Colors.white;
           },
@@ -226,7 +227,7 @@ class _CardViewState extends State<CardView> with TickerProviderStateMixin {
         category,
         style: TextStyle(
           fontSize: 16,
-          color: isSelected ? Colors.white : Colors.purple,
+          color: isSelected ? Colors.white : Colors.deepOrange,
         ),
       ),
     );
@@ -647,6 +648,7 @@ class ActivityCard extends StatelessWidget {
           child: SizedBox(
             height: 155,
             child: Card(
+              color: Color(0xFFF2F3F8),
               margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               elevation: 8,
               shape: RoundedRectangleBorder(
@@ -672,7 +674,7 @@ class ActivityCard extends StatelessWidget {
                           Text(
                             newsData.author,
                             style: const TextStyle(
-                              color: Colors.purple,
+                              color: Colors.red,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -739,7 +741,7 @@ class Authors extends StatelessWidget {
                           color: Colors.grey,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.red.withOpacity(0.2),
                               spreadRadius: 2,
                               blurRadius: 3,
                               offset: Offset(0, 2),

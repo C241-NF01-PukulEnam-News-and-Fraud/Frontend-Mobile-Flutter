@@ -198,6 +198,7 @@ class _TrendingViewState extends State<TrendingView>
             },
           ),
         ),
+        SizedBox(height: 80,)
       ],
     );
   }
@@ -232,6 +233,7 @@ class ActivityCard extends StatelessWidget {
           child: SizedBox(
             height: 155,
             child: Card(
+              color: Color(0xFFF2F3F8),
               margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               elevation: 8,
               shape: RoundedRectangleBorder(
@@ -257,19 +259,20 @@ class ActivityCard extends StatelessWidget {
                           Text(
                             newsData.author,
                             style: const TextStyle(
-                              color: Colors.purple,
+                              color: Colors.red,
                             ),
                           ),
                           const SizedBox(height: 8),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    SizedBox(width: 20),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
                         newsData.imageUrl,
                         height: 100,
+                        width: 130,
                         fit: BoxFit.cover,
                       ),
                     ),

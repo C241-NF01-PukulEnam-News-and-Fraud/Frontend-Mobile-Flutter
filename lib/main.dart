@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pukulenam/PartView/Cardview.dart';
 import 'package:pukulenam/PartView/Profile.dart';
+import 'package:pukulenam/SplashScreen.dart';
 import 'package:pukulenam/UI/FormAdapter.dart';
 import 'package:pukulenam/UI/MainView.dart';
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return MaterialApp(
-
+      debugShowCheckedModeBanner: false,
       title: 'Pukul Enam',
 
       theme: ThemeData(
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      home: CardList(),
+      home: SplashScreen(),
     );
   }
 }

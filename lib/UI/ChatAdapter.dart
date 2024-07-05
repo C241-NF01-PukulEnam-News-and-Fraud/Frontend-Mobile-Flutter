@@ -28,10 +28,12 @@ class _ChatAdapterState extends State<ChatAdapter>
 
   @override
   void initState() {
+    for(int i =0; i<4;i++){
+      print("tab ${i} : ${tabIconsList[i].isSelected}");
+    }
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
-
     animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     tabBody = ChatBox(animationController: animationController);
@@ -91,7 +93,7 @@ class _ChatAdapterState extends State<ChatAdapter>
           },
 
           changeIndex: (int index) {
-            print("mounted ${mounted}");
+            print("mounted chat ${mounted}");
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
                 if (!mounted) {

@@ -28,6 +28,9 @@ class _TrendingAdapterState extends State<TrendingAdapter>
 
   @override
   void initState() {
+    for(int i =0; i<4;i++){
+      print("tab ${i} : ${tabIconsList[i].isSelected}");
+    }
     tabIconsList.forEach((TabIconData tab) {
       tab.isSelected = false;
     });
@@ -94,9 +97,10 @@ class _TrendingAdapterState extends State<TrendingAdapter>
           },
 
           changeIndex: (int index) {
-            print("mounted ${mounted}");
+
             if (index == 0 ) {
               animationController?.reverse().then<dynamic>((data) {
+                print("mounted card ${mounted}");
                 if (!mounted) {
                   return;
                 }
@@ -108,6 +112,7 @@ class _TrendingAdapterState extends State<TrendingAdapter>
             }
             else if (index == 1 ) {
               animationController?.reverse().then<dynamic>((data) {
+                print("mounted trending ${mounted}");
                 if (!mounted) {
                   return;
                 }
